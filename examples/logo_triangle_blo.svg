@@ -4,7 +4,7 @@
             <g opacity="0.8">
                 <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
                     <polygon points="10,190 100,10 190,190" fill="yellow" stroke-width="4" />
-                    <text x="50" y="50" fill="yellow" font-size="200" text-anchor="middle" dominant-baseline="middle">blo</text>
+                    <text x="100" y="130" fill="undefined" font-size="200" text-anchor="middle" dominant-baseline="middle">blo</text>
                 </svg>
             </g>
         </svg>
