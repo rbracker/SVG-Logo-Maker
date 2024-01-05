@@ -1,80 +1,74 @@
-const { Triangle, Circle, Square } = require('./lib/shapes');
+const { Square, Circle, Triangle } = require('./lib/shapes');
+const { getUserInput } = require("./lib/userInput");
+const generateSVG = require('./lib/svgGenerator');
+const fs = require('fs');
 const inquirer = require('inquirer');
+const path = require('path');
 
-const chooseShapeType = async () => {
-  const answers = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'shapeType',
-      message: 'Choose a shape:',
-      choices: ['Triangle', 'Circle', 'Square'],
-    },
-  ]);
-  return answers.shapeType;
-};
+async function main() {
+    const shapeChoices = ['Square', 'Circle', 'Triangle'];
 
-const setColor = async () => {
-  const answers = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'color',
-      message: 'Enter color:',
-      default: 'black',
-    },
-  ]);
-  return answers.color;
-};
-
-const setAdditionalProperties = async (shape) => {
-  if (shape instanceof Circle) {
-    const answers = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'radius',
-        message: 'Enter radius:',
-        default: 50,
-      },
+    const { shapeType, color, shapeColor, text } = await inquirer.prompt([
+        {
+            type: 'list',
+            name: 'shapeType',
+            message: 'Select a shape:',
+            choices: shapeChoices,
+        },
+        {
+            type: 'input',
+            name: 'color',
+            message: 'Enter text color (keyword or hex):',
+        },
+        {
+            type: 'input',
+            name: 'shapeColor',
+            message: 'Enter shape color (keyword or hex):',
+        },
+        {
+            type: 'input',
+            name: 'text',
+            message: 'Enter text for the logo (up to three characters):',
+            validate: function (input) {
+                return input.length <= 3 || 'Please enter up to three characters.';
+            },
+        },
     ]);
-    shape.setRadius(parseInt(answers.radius, 10));
-  } else if (shape instanceof Square) {
-    const answers = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'sideLength',
-        message: 'Enter side length:',
-        default: 100,
-      },
-    ]);
-    shape.setSideLength(parseInt(answers.sideLength, 10));
-  }
-};
 
-const main = async () => {
-  const shapeType = await chooseShapeType();
-  let shape;
+    let selectedShape;
+    switch (shapeType) {
+        case 'Square':
+            selectedShape = new Square();
+            break;
+        case 'Circle':
+            selectedShape = new Circle();
+            break;
+        case 'Triangle':
+            selectedShape = new Triangle();
+            break;
+        default:
+            console.error('Invalid shape type');
+            process.exit(1);
+    }
 
-  switch (shapeType) {
-    case 'Triangle':
-      shape = new Triangle();
-      break;
-    case 'Circle':
-      shape = new Circle();
-      break;
-    case 'Square':
-      shape = new Square();
-      break;
-    default:
-      console.error('Invalid shape type');
-      process.exit(1);
-  }
+    selectedShape.setColor(color);
+    selectedShape.setText(text);
 
-  const color = await setColor();
-  shape.setColor(color);
+    // Generate SVG string using the common function
+    const svgContent = generateSVG(selectedShape, shapeColor);
 
-  await setAdditionalProperties(shape);
+    // Define fileName and filePath here
+    const fileName = `logo_${shapeType.toLowerCase()}_${text.toLowerCase()}.svg`;
+    const filePath = path.join(__dirname, 'examples', fileName);
 
-  console.log(`SVG Code for the ${shapeType}:`);
-  console.log(shape.render());
-};
+    fs.writeFile(filePath, svgContent, (err) => {
+        if (err) {
+            console.error('Error writing SVG file:', err);
+            return;
+        }
+
+        console.log('User input:', { shapeType, color, shapeColor, text });
+    });
+}
 
 main();
